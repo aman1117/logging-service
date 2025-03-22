@@ -24,6 +24,25 @@ type Log struct {
 type LoggingClient struct {
 	BatchedLogs []Log
 	BatchSize   int
+	server      *LoggingServer
+}
+
+type LoggingServer struct {
+	Logs []Log
+}
+
+func (s *LoggingServer) Push(logs []Log) {
+	s.Logs = append(s.Logs, logs...)
+}
+
+func (s *LoggingServer) FilterBasedOnLevel(level LogLevel) []Log {
+	var filteredLogs []Log
+	for _, log := range s.Logs {
+		if log.Level == level {
+			filteredLogs = append(filteredLogs, log)
+		}
+	}
+	return filteredLogs
 }
 
 func (c *LoggingClient) validate(message string, level LogLevel) error {
@@ -54,20 +73,39 @@ func (c *LoggingClient) Log(message string, level LogLevel) {
 }
 
 func (c *LoggingClient) Flush() {
-	for _, log := range c.BatchedLogs {
-		fmt.Printf("Timestamp: %s Level: %d Message: %s\n", log.Timestamp.Format("2006-01-02 15:04:05"), log.Level, log.Message)
-	}
+	c.server.Push(c.BatchedLogs)
 	c.BatchedLogs = []Log{}
 }
 
 func main() {
+	server := &LoggingServer{}
 	client := &LoggingClient{
 		BatchSize: 3,
+		server:    server,
 	}
 
-	client.Log("Hello, World!", INFO)
-	client.Log("Hello, World!", WARN)
-	client.Log("Hello, World!", ERROR)
-	client.Log("", INFO)
+	// System startup logs
+	client.Log("Logging service initialized successfully", INFO)
+	client.Log("Database connection established", INFO)
+	
+	// Warning logs for potential issues
+	client.Log("High memory usage detected: 85% of available memory", WARN)
+	client.Log("API response time increased by 200ms", WARN)
+	
+	// Error logs for critical issues
+	client.Log("Failed to connect to database: connection timeout", ERROR)
+	client.Log("Payment processing failed: insufficient funds", ERROR)
+	
+	// More info logs
+	client.Log("User authentication successful", INFO)
+	client.Log("Cache cleared successfully", INFO)
 
+	infoLogs := server.FilterBasedOnLevel(INFO)
+	warnLogs := server.FilterBasedOnLevel(WARN)
+	errorLogs := server.FilterBasedOnLevel(ERROR)
+	
+	fmt.Printf("Info logs: %v\n", infoLogs)
+	fmt.Printf("Warn logs: %v\n", warnLogs)
+	fmt.Printf("Error logs: %v\n", errorLogs)
+	
 }

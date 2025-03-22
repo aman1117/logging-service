@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"time"
 )
 
@@ -24,7 +26,23 @@ type LoggingClient struct {
 	BatchSize   int
 }
 
+func (c *LoggingClient) validate(message string, level LogLevel) error {
+	if message == "" {
+		return errors.New("message is empty")
+	}
+	if level < INFO || level > ERROR {
+		return errors.New("invalid log level")
+	}
+	return nil
+}
+
 func (c *LoggingClient) Log(message string, level LogLevel) {
+	err := c.validate(message, level)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		os.Exit(1)
+	}
+
 	c.BatchedLogs = append(c.BatchedLogs, Log{
 		Message:   message,
 		Level:     level,
@@ -46,11 +64,10 @@ func main() {
 	client := &LoggingClient{
 		BatchSize: 3,
 	}
-	
-	fmt.Printf("Type of client: %T\n", client)  // Will print: *main.LoggingClient
-	fmt.Printf("Value of client: %v\n", client) // Will print: &{[] 3}
 
 	client.Log("Hello, World!", INFO)
 	client.Log("Hello, World!", WARN)
 	client.Log("Hello, World!", ERROR)
+	client.Log("", INFO)
+
 }

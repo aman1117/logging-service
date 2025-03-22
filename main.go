@@ -28,9 +28,10 @@ func main() {
 	// More info logs
 	client.Log("User authentication successful", types.INFO)
 	client.Log("Cache cleared successfully", types.INFO)
+	client.Log("Cache restarted successfully", types.INFO)
 	client.Flush()
 
-	topLogs := server.GetTopLogsInLastNSeconds(5 * time.Second) // in nanoseconds
+	topLogs := server.GetTopLogsBasedOnLevelInLastNSeconds(5 * time.Second) // in nanoseconds
 	for _, log := range topLogs {
 		fmt.Printf("[%s] %s\n", log.Timestamp.Format("2006-01-02 15:04:05"), log.Message)
 	}

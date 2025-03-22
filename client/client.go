@@ -3,10 +3,10 @@ package client
 import (
 	"errors"
 	"fmt"
-	"os"
-	"time"
 	"github.com/aman1117/logging-service/server"
 	"github.com/aman1117/logging-service/types"
+	"os"
+	"time"
 )
 
 type LoggingClient struct {

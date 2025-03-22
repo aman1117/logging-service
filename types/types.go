@@ -14,4 +14,4 @@ type Log struct {
 	Message   string
 	Level     LogLevel
 	Timestamp time.Time
-} 
+}

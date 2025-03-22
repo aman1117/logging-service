@@ -1,6 +1,10 @@
 package server
 
-import "github.com/aman1117/logging-service/types"
+import (
+	"time"
+
+	"github.com/aman1117/logging-service/types"
+)
 
 type LoggingServer struct {
 	Logs []types.Log
@@ -24,5 +28,17 @@ func (s *LoggingServer) FilterBasedOnLevel(level types.LogLevel) []types.Log {
 		}
 	}
 	return filteredLogs
-} 
+}
+
+func (s *LoggingServer) GetTopLogsInLastNSeconds(d time.Duration) []types.Log {
+	var filteredLogs []types.Log
+	thresholdTime := time.Now().Add(-d) // Compute once
+
+	for _, log := range s.Logs {
+		if log.Timestamp.After(thresholdTime) {
+			filteredLogs = append(filteredLogs, log)
+		}
+	}
+	return filteredLogs
+}
 
